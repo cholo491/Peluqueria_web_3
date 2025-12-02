@@ -1,0 +1,77 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.notificaciones (
+  notificacion_id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  usuario_id integer NOT NULL,
+  tipo USER-DEFINED NOT NULL,
+  mensaje text NOT NULL,
+  enviado_en timestamp with time zone DEFAULT now(),
+  CONSTRAINT notificaciones_pkey PRIMARY KEY (notificacion_id),
+  CONSTRAINT fk_noti_usuario FOREIGN KEY (usuario_id) REFERENCES public.usuarios(usuario_id)
+);
+CREATE TABLE public.pagos (
+  pago_id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  reserva_id integer NOT NULL,
+  monto numeric NOT NULL,
+  metodo USER-DEFINED NOT NULL,
+  estado USER-DEFINED DEFAULT 'pendiente'::pago_estado,
+  fecha_pago timestamp with time zone,
+  CONSTRAINT pagos_pkey PRIMARY KEY (pago_id),
+  CONSTRAINT fk_pago_reserva FOREIGN KEY (reserva_id) REFERENCES public.reservas(reserva_id)
+);
+CREATE TABLE public.peluquero (
+  peluquero_id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  nombre character varying NOT NULL,
+  especialidad character varying,
+  estado USER-DEFINED DEFAULT 'activo'::peluquero_estado,
+  creado_en timestamp with time zone DEFAULT now(),
+  CONSTRAINT peluquero_pkey PRIMARY KEY (peluquero_id)
+);
+CREATE TABLE public.reportes (
+  reporte_id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  admin_id integer NOT NULL,
+  titulo character varying NOT NULL,
+  descripcion text,
+  fecha_generado timestamp with time zone DEFAULT now(),
+  CONSTRAINT reportes_pkey PRIMARY KEY (reporte_id),
+  CONSTRAINT fk_reporte_admin FOREIGN KEY (admin_id) REFERENCES public.usuarios(usuario_id)
+);
+CREATE TABLE public.reservas (
+  reserva_id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  peluquero_id integer NOT NULL,
+  cliente_id integer,
+  admin_id integer NOT NULL,
+  servicio_id integer,
+  fecha date NOT NULL,
+  hora_inicio time without time zone NOT NULL,
+  hora_fin time without time zone NOT NULL,
+  estado USER-DEFINED DEFAULT 'disponible'::reserva_estado,
+  fecha_creada timestamp with time zone DEFAULT now(),
+  CONSTRAINT reservas_pkey PRIMARY KEY (reserva_id),
+  CONSTRAINT fk_res_peluquero FOREIGN KEY (peluquero_id) REFERENCES public.peluquero(peluquero_id),
+  CONSTRAINT fk_res_cliente FOREIGN KEY (cliente_id) REFERENCES public.usuarios(usuario_id),
+  CONSTRAINT fk_res_admin FOREIGN KEY (admin_id) REFERENCES public.usuarios(usuario_id),
+  CONSTRAINT fk_res_servicio FOREIGN KEY (servicio_id) REFERENCES public.servicios(servicio_id)
+);
+CREATE TABLE public.servicios (
+  servicio_id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  nombre character varying NOT NULL,
+  descripcion text,
+  duracion_min integer NOT NULL,
+  precio_base numeric NOT NULL,
+  estado USER-DEFINED DEFAULT 'activo'::servicio_estado,
+  CONSTRAINT servicios_pkey PRIMARY KEY (servicio_id)
+);
+CREATE TABLE public.usuarios (
+  usuario_id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  nombre character varying NOT NULL,
+  apellido character varying NOT NULL,
+  email character varying NOT NULL UNIQUE,
+  password_hash character varying NOT NULL,
+  telefono character varying,
+  rol USER-DEFINED NOT NULL,
+  estado USER-DEFINED DEFAULT 'activo'::estado_usuario,
+  creado_en timestamp with time zone DEFAULT now(),
+  CONSTRAINT usuarios_pkey PRIMARY KEY (usuario_id)
+);
